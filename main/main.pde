@@ -1,12 +1,49 @@
+// import Sound lib - to install locally, go Sketch->Import Library->Add Library then search 'sound'
+import processing.sound.*;
+
+// IMPORTANT - the loading of large files may need an increase in the RAM available to Processing
+//     go to - File->Preferences, then check "Increase maximum memory" and set it to 2048
+
+// Declare globals for access in draw
+Atom[] my_atoms;
+Frame[] my_frames;
+
+AudioAnalysis analysis;
+
 void setup() {
   
+  int i;
+  String[] lines, lineData;
+  
   // Load .crd file
-  // Atom[] my_atoms =
+  
+  lines = loadStrings("dna260loop.crd");
+  println("Loaded .crd! Number of lines: " + lines.length);
+  my_atoms = new Atom[lines.length];
+  for (i = 0 ; i < lines.length; i++) {
+    lineData = lines[i].split(" ");
+    my_atoms[i] = new Atom(i, "???", 0, 0f, 0f, 0f);
+  }
+  
+  // Attempt garbage collection to clear memory
+  
+  lines = new String[1];  // lol
+  System.gc();
   
   // Load .pdb file
-  // Frame[] my_frames =
+  
+  lines = loadStrings("dna260loop.pdb");
+  println("Loaded .pdb! Number of lines: " + lines.length);
+  my_frames = new Frame[lines.length];
+  for (i = 0 ; i < lines.length; i++) {
+    lineData = lines[i].split(" ");
+    //my_frames[i] = new Frame("???????????");
+  }
   
   // Need to know (for each frame) order to draw atoms in z-order
+  
+  // Initialise audio analysis - this == PApplet singleton instance aka the sketch
+  analysis = new AudioAnalysis(this, 64);
   
   size(960, 540);
   background(0);
@@ -24,41 +61,4 @@ void draw() {
           
           // atom.display();
         
-}
-
-class Atom {
-   int id;
-   String element;
-   int molecule_id;
-   float xpos;
-   float ypos;
-   float zpos;
-   
-   // Calculated on load
-   float atom_width;
-   float atom_height;
-   float colour;
-   
-   Atom (int atom_id, String atom_element, int atom_molecule_id, float atom_x, float atom_y, float atom_z){
-     id = atom_id;
-     element = atom_element;
-     molecule_id = atom_molecule_id;
-     xpos = atom_x;
-     ypos = atom_y;
-     zpos = atom_z;  
-   }
-   
-   void display()  {
-     
-     stroke(0);
-     fill(colour);
-     ellipse(xpos, ypos, atom_width, atom_height);
-     
-   }
-}
-
-
-class Frame {
-  // Each frame is a list of atom_id, x, y, z co-ordinates in z-dimension order  
-  
 }
