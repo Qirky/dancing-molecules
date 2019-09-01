@@ -17,12 +17,16 @@ void setup() {
   
   // Load .crd file
   
-  lines = loadStrings("dna260loop.crd");
-  println("Loaded .crd! Number of lines: " + lines.length);
+  lines = loadStrings("dna260loop.pdb");                    // ['ATOM', atom_id, element, ?, 'X', molecule_id, x, y, z, 0, 0]\n
+  println("Loaded .pdb! Number of lines: " + lines.length);
+  
+  // Initialise atoms
+  
   my_atoms = new Atom[lines.length];
-  for (i = 0 ; i < lines.length; i++) {
-    lineData = lines[i].split(" ");
-    my_atoms[i] = new Atom(i, "???", 0, 0f, 0f, 0f);
+  
+  for (i = 1 ; i < lines.length - 1; i++) {
+    lineData = lines[i].split("\\s+");
+    my_atoms[i] = new Atom(int(lineData[1]), lineData[2], int(lineData[5]), float(lineData[6]), float(lineData[7]), float(lineData[8]));
   }
   
   // Attempt garbage collection to clear memory
@@ -32,17 +36,21 @@ void setup() {
   
   // Load .pdb file
   
-  lines = loadStrings("dna260loop.pdb");
-  println("Loaded .pdb! Number of lines: " + lines.length);
+  lines = loadStrings("dna260loop.crd");                      // [x, y, z, atom 1, frame 1], [x, y, z, atom 2, frame 1], ...
+  println("Loaded .crd! Number of lines: " + lines.length);
+  
+  // Initialise frames
+  
   my_frames = new Frame[lines.length];
+  
   for (i = 0 ; i < lines.length; i++) {
-    lineData = lines[i].split(" ");
+    lineData = lines[i].split("\\s+");
     //my_frames[i] = new Frame("???????????");
   }
   
   // Need to know (for each frame) order to draw atoms in z-order
   
-  // Initialise audio analysis - this == PApplet singleton instance aka the sketch
+  // Initialise audio analysis - this == PApplet instance == the sketch
   analysis = new AudioAnalysis(this, 64);
   
   size(960, 540);

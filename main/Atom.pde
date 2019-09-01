@@ -20,6 +20,10 @@ class Atom {
      zpos = atom_z;  
    }
    
+   void update(float x, float y, float z) {
+     
+   }
+   
    void display()  {
      
      stroke(0);
