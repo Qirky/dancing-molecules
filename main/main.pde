@@ -15,18 +15,18 @@ void setup() {
   int i;
   String[] lines, lineData;
   
-  // Load .crd file
+  // Load .pdb file
   
   lines = loadStrings("dna260loop.pdb");                    // ['ATOM', atom_id, element, ?, 'X', molecule_id, x, y, z, 0, 0]\n
-  println("Loaded .pdb! Number of lines: " + lines.length);
+  println("Loaded Atoms from .pdb! Number of lines: " + lines.length);
   
   // Initialise atoms
   
-  my_atoms = new Atom[lines.length];
+  my_atoms = new Atom[lines.length - 2];
   
-  for (i = 1 ; i < lines.length - 1; i++) {
+  for (i = 1; i < lines.length - 1; i++) {
     lineData = lines[i].split("\\s+");
-    my_atoms[i] = new Atom(int(lineData[1]), lineData[2], int(lineData[5]), float(lineData[6]), float(lineData[7]), float(lineData[8]));
+    my_atoms[i-1] = new Atom(int(lineData[1]), lineData[2], int(lineData[5]), float(lineData[6]), float(lineData[7]), float(lineData[8]));
   }
   
   // Attempt garbage collection to clear memory
@@ -34,21 +34,21 @@ void setup() {
   lines = new String[1];  // lol
   System.gc();
   
-  // Load .pdb file
+  // Load .crd file
   
   lines = loadStrings("dna260loop.crd");                      // [x, y, z, atom 1, frame 1], [x, y, z, atom 2, frame 1], ...
-  println("Loaded .crd! Number of lines: " + lines.length);
+  println("Loaded Frames from .crd! Number of lines: " + lines.length);
   
   // Initialise frames
   
   my_frames = new Frame[lines.length];
   
-  for (i = 0 ; i < lines.length; i++) {
+  for (i = 0; i < lines.length; i++) {
     lineData = lines[i].split("\\s+");
     //my_frames[i] = new Frame("???????????");
   }
   
-  // Need to know (for each frame) order to draw atoms in z-order
+  // Need to know (for each frame) order to draw atoms in z-order - scale z coordinate to z-order ?
   
   // Initialise audio analysis - this == PApplet instance == the sketch
   analysis = new AudioAnalysis(this, 64);
@@ -59,6 +59,8 @@ void setup() {
 
 void draw() {
   
+  background(0);
+  
   // for frame in my_frames
   
       // for atom in my_atoms 
@@ -68,5 +70,10 @@ void draw() {
           // atom.update(xyz);
           
           // atom.display();
+          
+  for(Atom atom : my_atoms) {
+    //atom.update(,,);
+    atom.display();
+  }
         
 }

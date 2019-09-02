@@ -1,23 +1,20 @@
 class Atom {
+   
    int id;
    String element;
    int molecule_id;
-   float xpos;
-   float ypos;
-   float zpos;
+   PVector position;
    
    // Calculated on load
-   float atom_width;
-   float atom_height;
-   float colour;
+   float atom_width = 1;
+   float atom_height = 1;
+   color colour = color(255,255,255);
    
    Atom (int atom_id, String atom_element, int atom_molecule_id, float atom_x, float atom_y, float atom_z){
      id = atom_id;
      element = atom_element;
      molecule_id = atom_molecule_id;
-     xpos = atom_x;
-     ypos = atom_y;
-     zpos = atom_z;  
+     position = new PVector(atom_x, atom_y, atom_z);
    }
    
    void update(float x, float y, float z) {
@@ -26,9 +23,9 @@ class Atom {
    
    void display()  {
      
-     stroke(0);
+     stroke(255);
      fill(colour);
-     ellipse(xpos, ypos, atom_width, atom_height);
+     ellipse(position.x * 2, (-height / 2) + position.y * 2, atom_width, atom_height);
      
    }
 }
