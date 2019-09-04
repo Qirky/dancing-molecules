@@ -29,6 +29,10 @@ void setup() {
     my_atoms[i-1] = new Atom(int(lineData[1]), lineData[2], int(lineData[5]), float(lineData[6]), float(lineData[7]), float(lineData[8]));
   }
   
+  // Total number of atoms loaded
+  
+  int num_atoms = my_atoms.length;
+  
   // Attempt garbage collection to clear memory
   
   lines = new String[1];  // lol
@@ -36,16 +40,62 @@ void setup() {
   
   // Load .crd file
   
-  lines = loadStrings("dna260loop.crd");                      // [x, y, z, atom 1, frame 1], [x, y, z, atom 2, frame 1], ...
+  lines = loadStrings("dna260loop.crd");                      // [x, y, z, (atom 1, frame 1)], [x, y, z, atom 2, frame 1], ...
   println("Loaded Frames from .crd! Number of lines: " + lines.length);
   
-  // Initialise frames
+  // Keep track of frame we are adding data to
   
-  my_frames = new Frame[lines.length];
+  Frame current_frame = new Frame(num_atoms);
+  int frame_id = 0;
   
-  for (i = 0; i < lines.length; i++) {
-    lineData = lines[i].split("\\s+");
-    //my_frames[i] = new Frame("???????????");
+  float[] current_atom  = new float[3];
+  int atom_id = 0;
+  int axis    = 0; // keep track of x, y, z pos we add
+  
+  for (i = 1; i < lines.length - 1; i++) {
+    
+    // Read data; every 3 items are an atom's x,y,z pos
+    lineData = lines[i].trim().split("\\s+");
+    
+    // Go through each point in the data
+    for (String s: lineData){
+      
+      // Append the data
+      current_atom[axis] = float(s);
+      
+      // jsut debugging
+      //if (atom_id == num_atoms) {
+      //  println("Completed loading atoms from line " + i);
+      //}
+        
+      
+      // When we have 3 axes, create data point and store
+      if (axis == 2) {
+        current_frame.add_data_point(atom_id, current_atom);
+        axis = 0;
+        atom_id++;
+        println("Finished loading atom " + atom_id + " of " + num_atoms + ". Finished: " + str(atom_id == num_atoms));
+      } else {
+        // Increase axis tracker
+        axis++;
+      }
+    }
+    
+    // When we get to the end of a frame
+    if (atom_id == num_atoms) { 
+      
+      println("Finished loading frame: " + frame_id);
+      
+      // Sort and store
+      current_frame.sort_by_z_axis();
+      my_frames[frame_id] = current_frame;
+      
+      // Next frame_id
+      current_frame = new Frame(num_atoms);
+      frame_id++;
+      atom_id = 0;      
+      
+    }
   }
   
   // Need to know (for each frame) order to draw atoms in z-order - scale z coordinate to z-order ?
