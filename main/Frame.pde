@@ -20,6 +20,10 @@ class Frame {
     // Sort 'data' by z_axis (see FrameDataPoint.compareTo())
     java.util.Arrays.sort(data);
   }
+  
+  int size(){
+    return atom_count;
+  }
 }
 
 class FrameDataPoint implements Comparable<FrameDataPoint>{

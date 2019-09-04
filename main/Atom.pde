@@ -18,7 +18,7 @@ class Atom {
    }
    
    void update(float x, float y, float z) {
-     
+     position = new PVector(x, y, z);
    }
    
    void display()  {
