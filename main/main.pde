@@ -8,11 +8,15 @@ import processing.sound.*;
 Atom[] my_atoms;
 Frame[] my_frames;
 
+int NUM_ATOMS;
+int NUM_SIMULATION_ATOMS;
+
 AudioAnalysis analysis;
 
 void setup() {
   
   int i;
+  int STEP_SIZE = 3; // decrease to display more atoms
   String[] lines, lineData;
   
   // Load .pdb file
@@ -22,16 +26,22 @@ void setup() {
   
   // Initialise atoms
   
-  my_atoms = new Atom[lines.length - 2];
+  NUM_SIMULATION_ATOMS = int(lines.length - 2);
+  NUM_ATOMS = int((NUM_SIMULATION_ATOMS - 1) / STEP_SIZE) + 1;
   
-  for (i = 1; i < lines.length - 1; i++) {
-    lineData = lines[i].split("\\s+");
-    my_atoms[i-1] = new Atom(int(lineData[1]), lineData[2], int(lineData[5]), float(lineData[6]), float(lineData[7]), float(lineData[8]));
+  my_atoms = new Atom[NUM_ATOMS];
+  
+  int atom_id = 0;
+  
+  //for (i = 1; i < lines.length - 1; i = i + STEP_SIZE) {
+  for (i = 0; i < NUM_SIMULATION_ATOMS; i = i + STEP_SIZE) {
+    lineData = lines[i + 1].split("\\s+");
+    // Use our own ID numbers
+    my_atoms[atom_id] = new Atom(atom_id, lineData[2], int(lineData[5]), float(lineData[6]), float(lineData[7]), float(lineData[8]));
+    atom_id ++;
   }
   
-  // Total number of atoms loaded
-  
-  int num_atoms = my_atoms.length;
+  println("Using " + NUM_ATOMS + " atoms from simulation (total = " + NUM_SIMULATION_ATOMS + ")");
   
   // Attempt garbage collection to clear memory
   
@@ -49,13 +59,14 @@ void setup() {
   int num_frames = 300;
   my_frames = new Frame[num_frames];
   
-  Frame current_frame = new Frame(num_atoms);
+  Frame current_frame = new Frame(NUM_ATOMS);
   int frame_id = 0;
+  atom_id = 0;
   
   float[] current_atom  = new float[3];
-  int atom_id = 0;
   int axis    = 0; // keep track of x, y, z pos we add
   String line = "";
+  int atom_counter = 0;
   
   for (i = 1; i < lines.length - 1; i++) {
     
@@ -63,16 +74,27 @@ void setup() {
     line = lines[i];
     
     // Go through each point in the data
-    for (int j = 0; j < line.length(); j = j + 8){ // step size = 8
+    for (int j = 0; j < line.length(); j = j + 8){ // each value is 8 characters of the string
     
       // Append the data
       current_atom[axis] = float(line.substring(j, j + 8));
       
       // When we have 3 axes, create data point and store
       if (axis == 2) {
-        current_frame.add_data_point(atom_id, current_atom);
+         
+        // only store if the atom will be in 'my_atoms'
+        
+        if (atom_counter % STEP_SIZE == 0) {
+          current_frame.add_data_point(atom_id, current_atom);
+          atom_id ++;
+        }
+        
+        // Increase atom counter when we process 3 axis
+        atom_counter ++;
+        
+        // reset axis tracker
         axis = 0;
-        atom_id++;
+        
       } else {
         // Increase axis tracker
         axis++;
@@ -80,22 +102,23 @@ void setup() {
     }
     
     // When we get to the end of a frame
-    if (atom_id == num_atoms) { 
+    if (atom_counter == NUM_SIMULATION_ATOMS) { 
       
       // Sort and store
       current_frame.sort_by_z_axis();
       my_frames[frame_id] = current_frame;
       
       // Next frame_id
-      current_frame = new Frame(num_atoms);
+      current_frame = new Frame(NUM_ATOMS);
       frame_id++;
-      atom_id = 0;      
+      atom_id = 0;
+      atom_counter = 0;
       
     }
     
     // Debug purposes, break on x number of frames
     if (frame_id == num_frames){
-      print("Finished loading frames!");
+      print("Finished loading frames!\n");
       break;
     }
     
@@ -117,14 +140,16 @@ void draw() {
   
   Frame frame = my_frames[frameCount % 300]; // first 300 frames for debug purposes
   
-  for (int i = 0; i < frame.size(); i = i + 5){
+  for (int i = 0; i < NUM_ATOMS; i++){
+    
     // Load data point
     FrameDataPoint dp = frame.data[i];
     
-    // Update atom
+    // Get atom
     Atom atom = my_atoms[dp.atom_id];
     
     // Do transformation of x, y, z based on fft / osc messages
+    // e.g. x, y, z = transform(dp.x, dp.y, dp.z)
     atom.update(dp.x, dp.y, dp.z);
     
     // Display

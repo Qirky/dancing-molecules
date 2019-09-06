@@ -41,10 +41,10 @@ class FrameDataPoint implements Comparable<FrameDataPoint>{
   
   @Override int compareTo(FrameDataPoint point) {
     // could probably done with something like int(point.z - z)
-    if (point.z > z) {
+    if (point.z < z) {
       return 1;
     }
-    else if (point.z < z) {
+    else if (point.z > z) {
       return -1;
     }
     else {
