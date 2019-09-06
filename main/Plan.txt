@@ -6,7 +6,9 @@
 
 # Data
 
+- Note: Starting position might be irrelevant?
 - Each frame is a list of atom_id's in z-axis order
 - Each atom contains a list of x, y, z positions in frame order: would allow for easier smoothing
+- z-axis relates to order but could also be size / shade of colour e.g. darker if further away
 - Loop through frame by frame; loop over atoms in frame, pull the appropriate atom_id, update the current location, transform by mappings, display.
 - Can we do multi threading to have ~4 iterators over each frame?
