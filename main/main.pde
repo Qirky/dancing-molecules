@@ -8,8 +8,8 @@ import processing.sound.*;
 Atom[] my_atoms;
 Frame[] my_frames;
 
-int NUM_ATOMS;
-int NUM_SIMULATION_ATOMS;
+int NUM_ATOMS;             // atoms being drawn
+int NUM_SIMULATION_ATOMS;  // Total atoms in .pdb file
 
 AudioAnalysis analysis;
 
@@ -138,7 +138,7 @@ void draw() {
   
   background(0);
   
-  Frame frame = my_frames[frameCount % 300]; // first 300 frames for debug purposes
+  Frame frame = my_frames[frameCount % my_frames.length];
   
   for (int i = 0; i < NUM_ATOMS; i++){
     
