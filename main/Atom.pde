@@ -11,9 +11,12 @@ class Atom {
    int molecule_id;
    PVector position;
    
+   float x_offset = 250; // derive from frames?
+   float y_offset = 0;
+   
    // Calculated on load
-   float atom_width = 5;
-   float atom_height = 5;
+   float atom_width = 3;
+   float atom_height = 3;
    color colour;
    
    Atom (int atom_id, String atom_element, int atom_molecule_id, float atom_x, float atom_y, float atom_z){
@@ -39,16 +42,17 @@ class Atom {
      
      // Could z-value be used to make colours darker?
 
-     position.add(int(random(-2,2)), int(random(-2,2)), int(random(-2,2)));
+     position.set(x, y, z);
      
    }
    
    void display()  {
      
-     //stroke(255);
      noStroke();
+     
      fill(colour);
-     ellipse(position.x * 2, (-height / 2) + position.y * 2, atom_width, atom_height);
+     
+     ellipse(position.x * 2 + x_offset, (height / 2) + position.y * 2 + y_offset, atom_width, atom_height);
      
    }
 }

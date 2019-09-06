@@ -11,8 +11,4 @@
 - Each atom contains a list of x, y, z positions in frame order: would allow for easier smoothing
 - z-axis relates to order but could also be size / shade of colour e.g. darker if further away
 - Loop through frame by frame; loop over atoms in frame, pull the appropriate atom_id, update the current location, transform by mappings, display.
-
-# Efficiency
-
-- Can we do multi threading to have ~4 iterators over each frame? -- probably no
-- Can we do updates in threads based on 'frameCount' and just have the draw() method drawing the most up-to-date version of the atom? Limited by number cores? Wouldn't draw in z-axis order?
+- Can we draw lines between atoms? Anything in the data to tell us where to draw connections?

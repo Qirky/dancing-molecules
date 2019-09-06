@@ -124,6 +124,8 @@ void setup() {
     
   }
   
+  // Use first frame to get the co-ord scales
+  
   // Need to know (for each frame) order to draw atoms in z-order - scale z coordinate to z-order ?
   
   // Initialise audio analysis - this == PApplet instance == the sketch
