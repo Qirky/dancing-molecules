@@ -106,8 +106,9 @@ void setup() {
   // Initialise audio analysis - this == PApplet instance == the sketch
   analysis = new AudioAnalysis(this, 64);
   
-  size(960, 540);
+  size(960, 540, P3D);
   background(0);
+  smooth();
 }
 
 void draw() {
@@ -116,7 +117,7 @@ void draw() {
   
   Frame frame = my_frames[frameCount % 300]; // first 300 frames for debug purposes
   
-  for (int i = 0; i < frame.size(); i++){
+  for (int i = 0; i < frame.size(); i = i + 5){
     // Load data point
     FrameDataPoint dp = frame.data[i];
     

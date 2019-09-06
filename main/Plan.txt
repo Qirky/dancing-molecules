@@ -1,0 +1,12 @@
+# Possible Mappings
+
+- Amplitude -> distance from centre point
+- Tempo / density of onsets -> reduce smoothing
+- Tempo / density of onsets -> frequency of colour changes
+
+# Data
+
+- Each frame is a list of atom_id's in z-axis order
+- Each atom contains a list of x, y, z positions in frame order: would allow for easier smoothing
+- Loop through frame by frame; loop over atoms in frame, pull the appropriate atom_id, update the current location, transform by mappings, display.
+- Can we do multi threading to have ~4 iterators over each frame?
