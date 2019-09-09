@@ -10,6 +10,12 @@ Frame[] my_frames;
 
 int NUM_ATOMS;             // atoms being drawn
 int NUM_SIMULATION_ATOMS;  // Total atoms in .pdb file
+int NUM_FRAMES;
+
+// Offset for X and Y location
+
+int X_OFFSET = 300;
+int Y_OFFSET = 0;
 
 AudioAnalysis analysis;
 
@@ -53,11 +59,14 @@ void setup() {
   lines = loadStrings("dna260loop.crd");                      // [x, y, z, (atom 1, frame 1)], [x, y, z, atom 2, frame 1], ...
   println("Loaded Frames from .crd! Number of lines: " + lines.length);
   
-  // Keep track of frame we are adding data to
+   // Get number of frames - can we do this earlier and instantiate atoms with frame array
   
   //my_frames = new Frame[int(lines.length / 10)];
-  int num_frames = 300;
-  my_frames = new Frame[num_frames];
+  NUM_FRAMES = 300;
+  my_frames = new Frame[NUM_FRAMES];
+  for (i = 0; i < NUM_ATOMS; i ++) {
+    my_atoms[i].setup_frames(NUM_FRAMES);
+  }
   
   Frame current_frame = new Frame(NUM_ATOMS);
   int frame_id = 0;
@@ -85,7 +94,12 @@ void setup() {
         // only store if the atom will be in 'my_atoms'
         
         if (atom_counter % STEP_SIZE == 0) {
-          current_frame.add_data_point(atom_id, current_atom);
+          // Store the atom_id and z-axis point
+          current_frame.add_data_point(atom_id, current_atom[2]);
+          
+          // Add frame data to the atom
+          my_atoms[atom_id].add_frame(frame_id, current_atom);
+          
           atom_id ++;
         }
         
@@ -117,7 +131,7 @@ void setup() {
     }
     
     // Debug purposes, break on x number of frames
-    if (frame_id == num_frames){
+    if (frame_id == NUM_FRAMES){
       print("Finished loading frames!\n");
       break;
     }
@@ -140,8 +154,16 @@ void draw() {
   
   background(0);
   
-  Frame frame = my_frames[frameCount % my_frames.length];
   
+  // Get frame number  
+  int frame_num = frameCount % my_frames.length;
+  Frame frame = my_frames[frame_num];
+  
+  // Storing data
+  float[] position = new float[3];
+  int smoothing = 10;
+  
+  // Iterate over atoms in z-axis order
   for (int i = 0; i < NUM_ATOMS; i++){
     
     // Load data point
@@ -151,10 +173,29 @@ void draw() {
     Atom atom = my_atoms[dp.atom_id];
     
     // Do transformation of x, y, z based on fft / osc messages
-    // e.g. x, y, z = transform(dp.x, dp.y, dp.z)
-    atom.update(dp.x, dp.y, dp.z);
+    position = transform(atom, frame_num, smoothing);
+    
+    // Update location of atom (handles smoothing)
+    
+    atom.update(position[0], position[1], position[2]);
     
     // Display
     atom.display();
   }      
+}
+
+float[] transform (Atom atom, int frame, int window) {
+  
+  // Do smoothing to x, y, z point
+  float[] data = atom.get_smoothed_position(frame, window);
+  
+  // Do audio analysis transformation here
+  
+  // Center the positions in the display
+  
+  data[0] += X_OFFSET;
+  data[1] += Y_OFFSET;
+  data[2] += 0; // Could move to between 0 and 255 for alpha?
+  
+  return data; 
 }

@@ -8,8 +8,8 @@ class Frame {
     data = new FrameDataPoint[max_size];
   }
   
-  // Each frame is a list of atom_id, x, y, z co-ordinates in z-dimension order  
-    void add_data_point(int atom, float[] pos_data){
+  // Each frame is a list of atom_id and z co-ordinates in z-dimension order  
+    void add_data_point(int atom, float pos_data){
     
     data[atom_count] = new FrameDataPoint(atom, pos_data);
     atom_count++;
@@ -28,15 +28,11 @@ class Frame {
 
 class FrameDataPoint implements Comparable<FrameDataPoint>{
   int atom_id;
-  float x;
-  float y;
   float z;
   
-  FrameDataPoint (int atom, float[] pos) {
+  FrameDataPoint (int atom, float z_pos) {
     atom_id = atom;
-    x = pos[0];
-    y = pos[1];
-    z = pos[2];
+    z = z_pos;
   }
   
   @Override int compareTo(FrameDataPoint point) {
