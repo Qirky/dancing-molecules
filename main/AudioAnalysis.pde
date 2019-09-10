@@ -23,4 +23,8 @@ class AudioAnalysis {
   float[] getSpectrum() {
     return fft.analyze(spectrum);
   }
+  
+  int getSmoothing() {
+    return 10;
+  }
 }

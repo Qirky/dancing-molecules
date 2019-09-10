@@ -26,6 +26,12 @@ float   POSITION_SCALAR = 1;
 float   POSITION_ZOOM = 1; // percentage to fill window
 float   ATOM_SIZE = 1;
 
+// Mappings
+
+float AMPLITUDE;
+float AMP_SENS = 8; // Amplitude sensitivity
+int SMOOTHING;
+
 AudioAnalysis analysis;
 
 void setup() {
@@ -152,20 +158,20 @@ void setup() {
   
   // Use first frame to get the co-ord scales
   POSITION_AVG = new PVector(0, 0, 0);
-  float min = 0;
-  float max = 0;
+  float _min = 0;
+  float _max = 0;
   for (i = 0; i < NUM_ATOMS; i++) {
     PVector pos = my_atoms[i].frames[0];
-    if (pos.x < min) {
-      min = pos.x;
+    if (pos.x < _min) {
+      _min = pos.x;
     } else 
-    if (pos.x > max) {
-      max = pos.x;
+    if (pos.x > _max) {
+      _max = pos.x;
     }
     POSITION_AVG.add(pos);
   }
   POSITION_AVG.div(NUM_ATOMS);
-  POSITION_AVG_SIZE = max - min;
+  POSITION_AVG_SIZE = _max - _min;
   
   // Initialise audio analysis - this == PApplet instance == the sketch
   analysis = new AudioAnalysis(this, 64);
@@ -185,7 +191,7 @@ void update_on_resize () {
   POSITION_SCALAR = (width / POSITION_AVG_SIZE) * POSITION_ZOOM;
   
   // Update offset based on average positions
-  POSITION_OFFSET = new PVector(width / 2, height / 2, 0);
+  POSITION_OFFSET = new PVector(width / 2, height / 2, 128);
   POSITION_OFFSET.sub(POSITION_AVG.copy().mult(POSITION_SCALAR));
   
   ATOM_SIZE = (width / 500 ) * 4 * POSITION_ZOOM;
@@ -218,13 +224,15 @@ void draw() {
   
   background(0);
   
-  // Get frame number  
+  // Get mapping values from audio analysis
+  
+  AMPLITUDE = (analysis.getAmplitude() * AMP_SENS) + 1;
+  SMOOTHING = analysis.getSmoothing();
+  
+  // Get frame
   int frame_num = frameCount % my_frames.length;
   Frame frame = my_frames[frame_num];
-  
-  // Storing data
   PVector position;
-  int smoothing = 10;
   
   // Iterate over atoms in z-axis order
   for (int i = 0; i < NUM_ATOMS; i++){
@@ -236,10 +244,9 @@ void draw() {
     Atom atom = my_atoms[dp.atom_id];
     
     // Do transformation of x, y, z based on fft / osc messages
-    position = transform(atom, frame_num, smoothing);
+    position = transform(atom, frame_num);
     
-    // Update location of atom (handles smoothing)
-    
+    // Update location of atom
     atom.update(position);
     
     // Display
@@ -247,12 +254,14 @@ void draw() {
   }      
 }
 
-PVector transform (Atom atom, int frame, int window) {
+PVector transform (Atom atom, int frame) {
   
   // Do smoothing to x, y, z point
-  PVector data = atom.get_smoothed_position(frame, window);
+  PVector data = atom.get_smoothed_position(frame, SMOOTHING);
   
   // Do audio analysis transformation here
+  
+  data.mult(AMPLITUDE);
   
   // Scale size
   

@@ -70,7 +70,7 @@ class Atom {
      
      noStroke();
      
-     fill(colour);
+     fill(colour, max(0, position.z) + 128); // set min alpha values to 128
      
      ellipse(position.x, position.y,  size, size);
      
