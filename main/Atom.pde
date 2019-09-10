@@ -48,35 +48,31 @@ class Atom {
      frames[frame_id] = new PVector(pos[0], pos[1], pos[2]);
    }
    
-   void update(float x, float y, float z) {
+   void update(PVector new_position) {
      
      // Could z-value be used to make colours darker?
 
-     position.set(x, y, z);
+     position.set(new_position);
      
    }
    
-   float[] get_smoothed_position (int start, int window) {
+   PVector get_smoothed_position (int start, int window) {
      // Returns the average position over the next "window" of frames
-     float[] pos = new float[3];
-     
-     for (int i = 0; i < 3; i++){
-       float sum = 0.0;
-       for (int j = 0; j < window; j ++){
-         sum += frames[(start + j) % frames.length].array()[i];
-       }
-       pos[i] = sum / window;
-     }     
+     PVector pos = new PVector(0, 0, 0);
+     for (int i = 0; i < window; i ++) {
+       pos.add(frames[(start + i) % frames.length]);
+     }
+     pos.div(window);   
      return pos;
    }
    
-   void display()  {
+   void display(float size)  {
      
      noStroke();
      
-     fill(colour, 200);
+     fill(colour);
      
-     ellipse(position.x * 2, (height / 2) + position.y * 2, atom_width, atom_height);
+     ellipse(position.x, position.y,  size, size);
      
    }
 }

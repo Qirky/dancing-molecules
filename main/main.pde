@@ -14,8 +14,17 @@ int NUM_FRAMES;
 
 // Offset for X and Y location
 
-int X_OFFSET = 300;
-int Y_OFFSET = 0;
+int WINDOW_WIDTH = 0;
+int WINDOW_HEIGHT = 0;
+
+// Vectors to center / enlarge molecule
+
+PVector POSITION_AVG;
+PVector POSITION_OFFSET;
+float   POSITION_AVG_SIZE;
+float   POSITION_SCALAR = 1;
+float   POSITION_ZOOM = 1; // percentage to fill window
+float   ATOM_SIZE = 1;
 
 AudioAnalysis analysis;
 
@@ -38,12 +47,13 @@ void setup() {
   my_atoms = new Atom[NUM_ATOMS];
   
   int atom_id = 0;
-  
-  //for (i = 1; i < lines.length - 1; i = i + STEP_SIZE) {
   for (i = 0; i < NUM_SIMULATION_ATOMS; i = i + STEP_SIZE) {
+    
     lineData = lines[i + 1].split("\\s+");
+    
     // Use our own ID numbers
     my_atoms[atom_id] = new Atom(atom_id, lineData[2], int(lineData[5]), float(lineData[6]), float(lineData[7]), float(lineData[8]));
+    
     atom_id ++;
   }
   
@@ -59,23 +69,25 @@ void setup() {
   lines = loadStrings("dna260loop.crd");                      // [x, y, z, (atom 1, frame 1)], [x, y, z, atom 2, frame 1], ...
   println("Loaded Frames from .crd! Number of lines: " + lines.length);
   
-   // Get number of frames - can we do this earlier and instantiate atoms with frame array
+   // TODO -- Get number of frames - can we do this earlier and instantiate atoms with frame array
   
-  //my_frames = new Frame[int(lines.length / 10)];
   NUM_FRAMES = 300;
   my_frames = new Frame[NUM_FRAMES];
+  // Go through atoms and set up frame array
   for (i = 0; i < NUM_ATOMS; i ++) {
     my_atoms[i].setup_frames(NUM_FRAMES);
   }
+  
+  // Begin frame setup
   
   Frame current_frame = new Frame(NUM_ATOMS);
   int frame_id = 0;
   atom_id = 0;
   
+  String line;
   float[] current_atom  = new float[3];
-  int axis    = 0; // keep track of x, y, z pos we add
-  String line = "";
-  int atom_counter = 0;
+  int axis              = 0; // keep track of x, y, z pos we add
+  int atom_counter      = 0;
   
   for (i = 1; i < lines.length - 1; i++) {
     
@@ -130,7 +142,7 @@ void setup() {
       
     }
     
-    // Debug purposes, break on x number of frames
+    // TODO -- can we know the number of frames first?
     if (frame_id == NUM_FRAMES){
       print("Finished loading frames!\n");
       break;
@@ -139,28 +151,79 @@ void setup() {
   }
   
   // Use first frame to get the co-ord scales
-  
-  // Need to know (for each frame) order to draw atoms in z-order - scale z coordinate to z-order ?
+  POSITION_AVG = new PVector(0, 0, 0);
+  float min = 0;
+  float max = 0;
+  for (i = 0; i < NUM_ATOMS; i++) {
+    PVector pos = my_atoms[i].frames[0];
+    if (pos.x < min) {
+      min = pos.x;
+    } else 
+    if (pos.x > max) {
+      max = pos.x;
+    }
+    POSITION_AVG.add(pos);
+  }
+  POSITION_AVG.div(NUM_ATOMS);
+  POSITION_AVG_SIZE = max - min;
   
   // Initialise audio analysis - this == PApplet instance == the sketch
   analysis = new AudioAnalysis(this, 64);
   
-  size(960, 540, P3D);
+  // Set up screen
+  
+  size(960, 540);
+  surface.setResizable(true);
   background(0);
   smooth();
+  
+}
+
+void update_on_resize () {
+  
+  // Update scalar and offset
+  POSITION_SCALAR = (width / POSITION_AVG_SIZE) * POSITION_ZOOM;
+  
+  // Update offset based on average positions
+  POSITION_OFFSET = new PVector(width / 2, height / 2, 0);
+  POSITION_OFFSET.sub(POSITION_AVG.copy().mult(POSITION_SCALAR));
+  
+  ATOM_SIZE = (width / 500 ) * 4 * POSITION_ZOOM;
+ 
+}
+
+void keyPressed() {
+  // Press up key
+  if (keyCode == 38) {
+   POSITION_ZOOM += 0.1;
+  }
+  // Pressed down key
+  else if (keyCode == 40) {
+    POSITION_ZOOM -= 0.1;
+  }
+  else {
+    return;
+  }
+  update_on_resize();
 }
 
 void draw() {
   
-  background(0);
+  // Check for resize
   
+  if (WINDOW_WIDTH != width || WINDOW_HEIGHT != height) {
+    update_on_resize();
+    WINDOW_WIDTH = width; WINDOW_HEIGHT = height;
+  }
+  
+  background(0);
   
   // Get frame number  
   int frame_num = frameCount % my_frames.length;
   Frame frame = my_frames[frame_num];
   
   // Storing data
-  float[] position = new float[3];
+  PVector position;
   int smoothing = 10;
   
   // Iterate over atoms in z-axis order
@@ -177,25 +240,27 @@ void draw() {
     
     // Update location of atom (handles smoothing)
     
-    atom.update(position[0], position[1], position[2]);
+    atom.update(position);
     
     // Display
-    atom.display();
+    atom.display(ATOM_SIZE);
   }      
 }
 
-float[] transform (Atom atom, int frame, int window) {
+PVector transform (Atom atom, int frame, int window) {
   
   // Do smoothing to x, y, z point
-  float[] data = atom.get_smoothed_position(frame, window);
+  PVector data = atom.get_smoothed_position(frame, window);
   
   // Do audio analysis transformation here
   
+  // Scale size
+  
+  data.mult(POSITION_SCALAR);
+  
   // Center the positions in the display
   
-  data[0] += X_OFFSET;
-  data[1] += Y_OFFSET;
-  data[2] += 0; // Could move to between 0 and 255 for alpha?
+  data.add(POSITION_OFFSET);
   
   return data; 
 }
